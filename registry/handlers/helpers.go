@@ -7,6 +7,9 @@ import (
 
 	ctxu "github.com/docker/distribution/context"
 	"github.com/docker/distribution/registry/api/errcode"
+
+
+	"github.com/cooljiansir/fastpush/server"
 )
 
 // closeResources closes all the provided resources after running the target
@@ -23,6 +26,8 @@ func closeResources(handler http.Handler, closers ...io.Closer) http.Handler {
 // copyFullPayload copies the payload of a HTTP request to destWriter. If it
 // receives less content than expected, and the client disconnected during the
 // upload, it avoids sending a 400 error to keep the logs cleaner.
+
+//cooljiansir: add fast push (dedup)
 func copyFullPayload(responseWriter http.ResponseWriter, r *http.Request, destWriter io.Writer, context ctxu.Context, action string, errSlice *errcode.Errors) error {
 	// Get a channel that tells us if the client disconnects
 	var clientClosed <-chan bool
@@ -33,7 +38,14 @@ func copyFullPayload(responseWriter http.ResponseWriter, r *http.Request, destWr
 	}
 
 	// Read in the data, if any.
-	copied, err := io.Copy(destWriter, r.Body)
+	var bodyReader io.Reader
+	if r.Header.Get("Fast-Push") == "V1"{
+		fastPushReader := server.NewCntReader(r.Body)
+		bodyReader = fastPushReader
+	}else{
+		bodyReader = r.Body
+	}
+	copied, err := io.Copy(destWriter, bodyReader)
 	if clientClosed != nil && (err != nil || (r.ContentLength > 0 && copied < r.ContentLength)) {
 		// Didn't recieve as much content as expected. Did the client
 		// disconnect during the request? If so, avoid returning a 400

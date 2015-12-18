@@ -112,6 +112,18 @@ func (ub *URLBuilder) BuildCatalogURL(values ...url.Values) (string, error) {
 	return appendValuesURL(catalogURL, values...).String(), nil
 }
 
+// BuildCatalogURL just return the BlobUploadHashUrl
+func (ub *URLBuilder) BuildBlobUploadHashURL() (string, error) {
+        route := ub.cloneRoute(RouteNameBlobUploadHash)
+
+        blobUploadHashURL, err := route.URL()
+        if err != nil {
+                return "", err
+        }
+
+        return blobUploadHashURL.String(), nil
+}
+
 // BuildTagsURL constructs a url to list the tags in the named repository.
 func (ub *URLBuilder) BuildTagsURL(name string) (string, error) {
 	route := ub.cloneRoute(RouteNameTags)

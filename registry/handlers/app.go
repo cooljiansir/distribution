@@ -95,6 +95,9 @@ func NewApp(ctx context.Context, configuration *configuration.Configuration) *Ap
 	app.register(v2.RouteNameBlob, blobDispatcher)
 	app.register(v2.RouteNameBlobUpload, blobUploadDispatcher)
 	app.register(v2.RouteNameBlobUploadChunk, blobUploadDispatcher)
+	
+	//cooljiansir: fastpush
+	app.register(v2.RouteNameBlobUploadHash, blobUploadHashDispatcher)
 
 	var err error
 	app.driver, err = factory.Create(configuration.Storage.Type(), configuration.Storage.Parameters())
@@ -758,7 +761,7 @@ func (app *App) eventBridge(ctx *Context, r *http.Request) notifications.Listene
 func (app *App) nameRequired(r *http.Request) bool {
 	route := mux.CurrentRoute(r)
 	routeName := route.GetName()
-	return route == nil || (routeName != v2.RouteNameBase && routeName != v2.RouteNameCatalog)
+	return route == nil || (routeName != v2.RouteNameBase && routeName != v2.RouteNameCatalog && routeName != v2.RouteNameBlobUploadHash)
 }
 
 // apiBase implements a simple yes-man for doing overall checks against the

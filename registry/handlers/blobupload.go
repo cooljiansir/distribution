@@ -12,7 +12,28 @@ import (
 	"github.com/docker/distribution/registry/api/errcode"
 	"github.com/docker/distribution/registry/api/v2"
 	"github.com/gorilla/handlers"
+
+	"github.com/cooljiansir/fastpush/server"
+	"io"
 )
+
+// blobUploadHashDispatcher return the query result of data block's hash
+// exists on server or not
+// used by fast push (dedup)
+func blobUploadHashDispatcher(ctx *Context, r *http.Request) http.Handler {
+	handler := handlers.MethodHandler{
+                "POST":  http.HandlerFunc(blobUploadHash),
+        }
+	return handler
+}
+
+// blobUploadHashDispatcher return the query result of data block's hash
+// exists on server or not
+// used by fast push (dedup)
+func blobUploadHash(w http.ResponseWriter, r *http.Request) {
+	reader := server.NewIdxReader(r.Body)
+        io.Copy(w,reader)
+}
 
 // blobUploadDispatcher constructs and returns the blob upload handler for the
 // given request context.
@@ -138,7 +159,15 @@ func (buh *blobUploadHandler) StartBlobUpload(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	// fast push 
+        blobHashURL, err := buh.urlBuilder.BuildBlobUploadHashURL()
+        if err != nil {
+                buh.Errors = append(buh.Errors, errcode.ErrorCodeUnknown.WithDetail(err))
+                return
+        }
+
 	w.Header().Set("Docker-Upload-UUID", buh.Upload.ID())
+	w.Header().Set("Fast-Push-Hash-Location",blobHashURL)
 	w.WriteHeader(http.StatusAccepted)
 }
 

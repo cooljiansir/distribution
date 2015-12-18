@@ -706,8 +706,6 @@ var routeDescriptors = []RouteDescriptor{
 							authHeader,
 						},
 						PathParameters: []ParameterDescriptor{
-							nameParameterDescriptor,
-							digestPathParameter,
 						},
 						Successes: []ResponseDescriptor{
 							{
@@ -1492,6 +1490,109 @@ var routeDescriptors = []RouteDescriptor{
 			},
 		},
 	},
+        {
+                Name:        RouteNameBlobUploadHash,
+                Path:        "/v2/_blob_upload_hash",
+                Entity:      "BlobeUploadHash",
+                Description: `Fast push route`,
+                Methods: []MethodDescriptor{
+                        {
+                                Method:      "POST",
+                                Description: "",
+                                Requests: []RequestDescriptor{
+                                        {
+                                                Headers: []ParameterDescriptor{
+                                                        hostHeader,
+                                                        authHeader,
+                                                },
+                                                Successes: []ResponseDescriptor{
+                                                        {
+                                                                Description: "response 0 means block not exists in server,1 means does",
+                                                                StatusCode:  http.StatusOK,
+                                                        },
+                                                },
+                                                Failures: []ResponseDescriptor{
+                                                        {
+                                                                Description: "The registry does not implement fast push",
+                                                                StatusCode:  http.StatusNotFound,
+                                                        },
+                                                        unauthorizedResponseDescriptor,
+                                                },
+                                        },
+                                },
+                        },
+                },
+        },
+	/*
+        {
+                Name:        RouteNameBlobUploadHash,
+                Path:        "/v2/_catalog_",
+                Entity:      "Catalog",
+                Methods: []MethodDescriptor{
+                        {
+                                Method:      "GET",
+                                Description: "Retrieve a sorted, json list of repositories available in the registry.",
+                                Requests: []RequestDescriptor{
+                                        {
+                                                Name:        "Catalog Fetch Complete",
+                                                Description: "Request an unabridged list of repositories available.",
+                                                Successes: []ResponseDescriptor{
+                                                        {
+                                                                Description: "Returns the unabridged list of repositories as a json response.",
+                                                                StatusCode:  http.StatusOK,
+                                                                Headers: []ParameterDescriptor{
+                                                                        {
+                                                                                Name:        "Content-Length",
+                                                                                Type:        "integer",
+                                                                                Description: "Length of the JSON response body.",
+                                                                                Format:      "<length>",
+                                                                        },
+                                                                },
+                                                                Body: BodyDescriptor{
+                                                                        ContentType: "application/json; charset=utf-8",
+                                                                        Format: `{
+        "repositories": [
+                <name>,
+                ...
+        ]
+}`,
+                                                                },
+                                                        },
+                                                },
+                                        },
+                                        {
+                                                Name:            "Catalog Fetch Paginated",
+                                                Description:     "Return the specified portion of repositories.",
+                                                QueryParameters: paginationParameters,
+                                                Successes: []ResponseDescriptor{
+                                                        {
+                                                                StatusCode: http.StatusOK,
+                                                                Body: BodyDescriptor{
+                                                                        ContentType: "application/json; charset=utf-8",
+                                                                        Format: `{
+        "repositories": [
+                <name>,
+                ...
+        ]
+        "next": "<url>?last=<name>&n=<last value of n>"
+}`,
+                                                                },
+                                                                Headers: []ParameterDescriptor{
+                                                                        {
+                                                                                Name:        "Content-Length",
+                                                                                Type:        "integer",
+                                                                                Description: "Length of the JSON response body.",
+                                                                                Format:      "<length>",
+                                                                        },
+                                                                        linkHeader,
+                                                                },
+                                                        },
+                                                },
+                                        },
+                                },
+                        },
+                },
+        },*/
 }
 
 var routeDescriptorsMap map[string]RouteDescriptor
