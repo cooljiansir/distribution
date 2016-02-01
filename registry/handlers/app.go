@@ -10,7 +10,6 @@ import (
 	"net/url"
 	"os"
 	"time"
-	"io"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/docker/distribution"
@@ -35,7 +34,6 @@ import (
 	"github.com/gorilla/mux"
 	"golang.org/x/net/context"
 
-	"github.com/cooljiansir/fastpush/server"
 )
 
 // randomSecretSize is the number of random bytes to generate if no secret
@@ -77,41 +75,6 @@ type App struct {
 	readOnly bool
 }
 
-// cooljiansir:middleware for fast push 
-type dockerFileOpenSeeker struct{
-	driver  storagedriver.StorageDriver
-	cxt	context.Context
-}
-func NewDockerFileOpenSeeker(driver storagedriver.StorageDriver,cxt context.Context)*dockerFileOpenSeeker{
-	return &dockerFileOpenSeeker{
-	        driver:driver,
-        	cxt:cxt,
-	}
-}
-func (f *dockerFileOpenSeeker)OpenSeek(path string,off int64)(io.ReadCloser,error){
-	return f.driver.ReadStream(f.cxt, path , off)
-}
-
-// cooljiansir: middleware of fast push
-
-type dockerWalker struct {
-	driver  storagedriver.StorageDriver
-	cxt	context.Context
-}
-
-func NewDockerWalker(driver storagedriver.StorageDriver,cxt context.Context)*dockerWalker{
-        return &dockerWalker{
-                driver:driver,
-                cxt:cxt,
-        }
-}
-
-func (w *dockerWalker)Walk(basepath string,f func(path string,isDir bool) error) error {
-	return storage.Walk(w.cxt,w.driver,basepath,func(fileInfo storagedriver.FileInfo) error {
-		if fileInfo == nil {return nil}
-		return f(fileInfo.Path(),fileInfo.IsDir())
-	})
-}
 
 // NewApp takes a configuration and returns a configured app, ready to serve
 // requests. The app only implements ServeHTTP and can be wrapped in other
@@ -146,11 +109,6 @@ func NewApp(ctx context.Context, configuration *configuration.Configuration) *Ap
 		// a health check.
 		panic(err)
 	}
-	//fast push server init
-	server.SetWalker(NewDockerWalker(app.driver,ctx))
-	server.SetFileOpenSeeker(NewDockerFileOpenSeeker(app.driver,ctx))
-	
-	server.Scan("/")
 
 	purgeConfig := uploadPurgeDefaultConfig()
 	if mc, ok := configuration.Storage["maintenance"]; ok {

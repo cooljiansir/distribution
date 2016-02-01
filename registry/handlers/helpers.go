@@ -42,6 +42,7 @@ func copyFullPayload(responseWriter http.ResponseWriter, r *http.Request, destWr
 	if r.Header.Get("Fast-Push") == "V1"{
 		fastPushReader := server.NewCntReader(r.Body)
 		bodyReader = fastPushReader
+		defer fastPushReader.Close()
 	}else{
 		bodyReader = r.Body
 	}
