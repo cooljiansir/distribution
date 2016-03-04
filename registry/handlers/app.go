@@ -33,7 +33,7 @@ import (
 	"github.com/garyburd/redigo/redis"
 	"github.com/gorilla/mux"
 	"golang.org/x/net/context"
-
+	"github.com/cooljiansir/fastpush/server"
 )
 
 // randomSecretSize is the number of random bytes to generate if no secret
@@ -109,6 +109,18 @@ func NewApp(ctx context.Context, configuration *configuration.Configuration) *Ap
 		// a health check.
 		panic(err)
 	}
+
+	//fastpush path
+	fastdbpath := "/var/registry/fastpush/"
+	if fc,ok := configuration.Storage["fastpush"]; ok{
+		if path,ok := fc["dbdirectory"]; ok{
+			fastdbpath,ok = path.(string)
+			if !ok{
+				panic("fastdbpath config err")
+			}
+		}
+	}
+	server.Start(fastdbpath)
 
 	purgeConfig := uploadPurgeDefaultConfig()
 	if mc, ok := configuration.Storage["maintenance"]; ok {

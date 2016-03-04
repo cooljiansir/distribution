@@ -6,6 +6,8 @@ log:
 storage:
     cache:
         blobdescriptor: inmemory
+    fastpush:
+        dbdirectory: /var/registry/fastpushtest
     filesystem:
         rootdirectory: /var/lib/registry
 http:
